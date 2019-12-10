@@ -39,8 +39,6 @@ public class LoadClassTest {
 
         HelloService service1 = (HelloService) cz1.newInstance();
         service1.sayHello();
-
-
     }
 
 }
