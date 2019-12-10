@@ -13,6 +13,12 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * class loader for loading target jar file
+ *
+ * @author yanggaofeng
+ * @date 20191210
+ */
 public class DepClassLoader extends ClassLoader {
 
     /**
