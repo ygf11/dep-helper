@@ -43,6 +43,7 @@ public class DepClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
+        // 1. cache中获取
         return super.findClass(name);
     }
 
@@ -57,7 +58,7 @@ public class DepClassLoader extends ClassLoader {
 
         if (!file.exists()) {
             throw new DepFileNotFoundException(
-                    "file:" + jarName + " not exists in resources dir.");
+                    "file:" + jarName + " not found in resources dir.");
         }
 
 
@@ -71,20 +72,20 @@ public class DepClassLoader extends ClassLoader {
             Enumeration<JarEntry> enumeration = jarFile.entries();
             while (enumeration.hasMoreElements()) {
                 JarEntry jarEntry = enumeration.nextElement();
-                String name = jarEntry.getName();
+                String name = jarEntry.getName().replace("/", ".");
                 InputStream inputStream = jarFile.getInputStream(jarEntry);
 
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 int bufferSize = 1024;
                 byte[] buffer = new byte[bufferSize];
                 int readSize;
 
                 while ((readSize = inputStream.read(buffer)) != -1) {
-                    baos.write(buffer, 0, readSize);
+                    byteArrayOutputStream.write(buffer, 0, readSize);
                 }
 
                 inputStream.close();
-                bytesCache.put(name, baos.toByteArray());
+                bytesCache.put(name, byteArrayOutputStream.toByteArray());
             }
 
         } catch (IOException e) {
@@ -96,11 +97,11 @@ public class DepClassLoader extends ClassLoader {
     }
 
 
-    private JarFile transferToJar(File file){
+    private JarFile transferToJar(File file) {
         JarFile jarFile;
-        try{
+        try {
             jarFile = new JarFile(file);
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new JarFileParseException(e);
         }
 
