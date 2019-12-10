@@ -33,4 +33,10 @@ public class DepClassLoader extends ClassLoader {
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         return super.findClass(name);
     }
+
+    private Map<String, byte[]> preRead(){
+
+
+        return null;
+    }
 }
