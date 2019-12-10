@@ -3,8 +3,10 @@ package ygf;
 import ygf.exception.DepFileNotFoundException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.JarFile;
 
 public class DepClassLoader extends ClassLoader {
 
@@ -52,6 +54,16 @@ public class DepClassLoader extends ClassLoader {
                     "file:" + jarName + " not exists in resources dir.");
         }
 
+
+
         return file;
+    }
+
+    private void readJar(File file) {
+        try {
+            JarFile jarFile = new JarFile(file);
+        }catch (IOException e){
+
+        }
     }
 }
