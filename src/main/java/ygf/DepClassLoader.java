@@ -42,8 +42,7 @@ public class DepClassLoader extends ClassLoader {
     }
 
     @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        // 1. cache中获取
+    protected Class<?> findClass(String name){
         Class<?> cz = classCache.get(name);
         if (cz != null) {
             return cz;
