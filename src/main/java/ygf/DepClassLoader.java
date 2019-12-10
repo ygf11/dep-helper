@@ -54,7 +54,10 @@ public class DepClassLoader extends ClassLoader {
             throw new DepFileNotFoundException("name:" + name + ", class file not found.");
         }
 
-        return defineClass(name, bytes, 0, bytes.length);
+        Class<?> result = defineClass(name, bytes, 0, bytes.length);
+        classCache.putIfAbsent(name, result);
+
+        return result;
     }
 
     private void preRead() {
@@ -82,7 +85,17 @@ public class DepClassLoader extends ClassLoader {
             Enumeration<JarEntry> enumeration = jarFile.entries();
             while (enumeration.hasMoreElements()) {
                 JarEntry jarEntry = enumeration.nextElement();
-                String name = jarEntry.getName().replace("/", ".");
+
+                if (jarEntry.isDirectory()){
+                    continue;
+                }
+
+                if (!jarEntry.getName().endsWith(".class")){
+                    continue;
+                }
+
+                String name = jarEntry.getName().replace(".class", "")
+                        .replace("/", ".");
                 InputStream inputStream = jarFile.getInputStream(jarEntry);
 
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
