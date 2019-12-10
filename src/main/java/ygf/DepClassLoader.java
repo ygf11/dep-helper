@@ -20,11 +20,11 @@ public class DepClassLoader extends ClassLoader {
      */
     private Map<String, byte[]> bytesCache = new HashMap<String, byte[]>();
 
-    public DepClassLoader(){
+    public DepClassLoader() {
         super();
     }
 
-    public DepClassLoader(String path){
+    public DepClassLoader(String path) {
         super();
         this.path = path;
     }
@@ -34,7 +34,7 @@ public class DepClassLoader extends ClassLoader {
         return super.findClass(name);
     }
 
-    private Map<String, byte[]> preRead(){
+    private Map<String, byte[]> preRead() {
 
 
         return null;
