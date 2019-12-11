@@ -50,19 +50,24 @@ public class DepClassLoader extends ClassLoader {
     @Override
     protected Class<?> findClass(String name){
         Class<?> cz = classCache.get(name);
-        if (cz != null) {
-            return cz;
+
+        if (cz == null){
+            synchronized (this){
+                cz = classCache.get(name);
+                if (cz == null){
+                    byte[] bytes = bytesCache.get(name);
+                    if (bytes == null) {
+                        throw new DepFileNotFoundException("name:" + name + ", class file not found.");
+                    }
+
+                    Class<?> result = defineClass(name, bytes, 0, bytes.length);
+                    classCache.putIfAbsent(name, result);
+                    cz = result;
+                }
+            }
         }
 
-        byte[] bytes = bytesCache.get(name);
-        if (bytes == null) {
-            throw new DepFileNotFoundException("name:" + name + ", class file not found.");
-        }
-
-        Class<?> result = defineClass(name, bytes, 0, bytes.length);
-        classCache.putIfAbsent(name, result);
-
-        return result;
+        return cz;
     }
 
     private void preRead() {
