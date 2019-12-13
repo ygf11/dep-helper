@@ -11,7 +11,7 @@
     <modules>
         <module>dep-helper-maven-plugin</module>
         <module>deps-isolation</module>
-        <module>deps-example</module>
+        <module>example</module>
     </modules>
 
     <build>
