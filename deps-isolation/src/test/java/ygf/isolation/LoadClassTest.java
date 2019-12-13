@@ -1,4 +1,4 @@
-package classloader;
+package ygf.isolation;
 
 import com.dep.service.impl.api.HelloService;
 import org.junit.Assert;
