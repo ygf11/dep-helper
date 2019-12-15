@@ -16,6 +16,9 @@ import java.util.List;
 @Mojo(name = "move")
 public class DependenciesMojo extends AbstractMojo {
 
+    @Parameter
+    private List<String> deps;
+
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject mavenProject;
 
