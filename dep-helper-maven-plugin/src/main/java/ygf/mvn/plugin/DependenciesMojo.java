@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,8 +37,8 @@ import java.util.jar.Manifest;
 @Mojo(name = "build")
 public class DependenciesMojo extends AbstractMojo {
 
-    @Parameter(property = "deps", required = true)
-    private List<String> deps;
+    @Parameter(property = "dependencies", required = true)
+    private List<String> dependencies;
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject mavenProject;
@@ -56,11 +57,25 @@ public class DependenciesMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        System.out.println("in deps helper.");
-        deps.forEach(System.out::println);
+        if (dependencies.isEmpty()){
+            getLog().info("dependencies config is empty");
+            return;
+        }
+
+        getLog().info("Checking dependencies config");
+
+        checkConfig(dependencies);
+
+        List<Artifact> artifacts = new ArrayList<>();
+        for (String dependency: dependencies){
+            Artifact artifact = getDependencyFile(dependency);
+            artifacts.add(artifact);
+        }
+
+        zipConfigedDeps(artifacts);
     }
 
-    private void checkConfigedDeps(List<String> dependencyList) {
+    private void checkConfig(List<String> dependencyList) {
         Set<String> depSet = new HashSet<>();
         for (String dependency : dependencyList) {
             String[] posArray = dependency.split(":");
@@ -94,6 +109,8 @@ public class DependenciesMojo extends AbstractMojo {
         }
 
         if (result.isMissing()) {
+            getLog().error("dependency:" + dependency +
+                    " is not present in any of the given repositories");
             throw new ResolveDepErrorException("dependency:" + dependency +
                     " is not present in any of the given repositories");
         }
@@ -116,9 +133,13 @@ public class DependenciesMojo extends AbstractMojo {
                 File file = artifact.getFile();
                 FileInputStream inputStream = new FileInputStream(file);
                 writeToJar(inputStream, jarOutputStream, file.getName());
+                inputStream.close();
             }
 
+            jarOutputStream.finish();
+            jarOutputStream.close();
         } catch (IOException e) {
+            getLog().error("write file to deps.jar failed", e);
             throw new WriteFileFailedException("write file to deps.jar failed:", e);
         }
     }
@@ -134,5 +155,7 @@ public class DependenciesMojo extends AbstractMojo {
         while ((bytesRead = fileInputStream.read(buffer)) != -1) {
             jarOutputStream.write(buffer, 0, bytesRead);
         }
+
+        fileInputStream.close();
     }
 }
