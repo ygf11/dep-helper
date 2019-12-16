@@ -100,7 +100,7 @@ public class DepClassLoader extends ClassLoader {
                     continue;
                 }
 
-                if (!jarEntry.getName().endsWith(".class")){
+                if (!jarEntry.getName().endsWith(".class|.jar")){
                     continue;
                 }
 
@@ -140,4 +140,5 @@ public class DepClassLoader extends ClassLoader {
 
         return jarFile;
     }
+
 }

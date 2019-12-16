@@ -72,7 +72,7 @@ public class DependenciesMojo extends AbstractMojo {
             artifacts.add(artifact);
         }
 
-        zipConfigedDeps(artifacts);
+        zipConfigDeps(artifacts);
     }
 
     private void checkConfig(List<String> dependencyList) {
@@ -121,7 +121,7 @@ public class DependenciesMojo extends AbstractMojo {
         return result.getArtifact();
     }
 
-    private void zipConfigedDeps(List<Artifact> artifactList) {
+    private void zipConfigDeps(List<Artifact> artifactList) {
         Manifest manifest = new Manifest();
         manifest.getMainAttributes()
                 .put(Attributes.Name.MANIFEST_VERSION, "1.0");
