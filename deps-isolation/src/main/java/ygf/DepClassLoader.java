@@ -62,7 +62,7 @@ public class DepClassLoader extends ClassLoader {
             synchronized (this) {
                 cz = classCache.get(name);
                 if (cz == null) {
-                    byte[] bytes = bytesCache.get(name);
+                    byte[] bytes = getByteArray(name);
                     if (bytes == null) {
                         throw new DepFileNotFoundException(
                                 "name:" + name + ", class file not found.");
@@ -78,6 +78,46 @@ public class DepClassLoader extends ClassLoader {
         return cz;
     }
 
+    private byte[] getByteArray(String czName) {
+        if (czName == null) {
+            throw new LoadClassException("czName is null");
+        }
+
+        byte[] bytes = bytesCache.get(czName);
+        if (bytes != null) {
+            return bytes;
+        }
+
+        String jarPath = TMP_DIR + File.separator + jarName;
+        File jar = new File(jarPath);
+        JarFile jarFile = getJarFile(jar);
+
+        Enumeration<JarEntry> enumeration = jarFile.entries();
+        while (enumeration.hasMoreElements()) {
+            JarEntry entry = enumeration.nextElement();
+
+            if (entry.isDirectory()) {
+                continue;
+            }
+
+            String entryName = entry.getName().replace(".class", "")
+                    .replaceAll("/", ".");
+
+            if (czName.equals(entryName)) {
+                try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                    bytes = bytesCache.putIfAbsent(jarName, readBytes(inputStream));
+                } catch (IOException e) {
+                    throw new ExtractJarFileException("get jar input stream failed", e);
+                }
+
+                bytesCache.putIfAbsent(czName, bytes);
+                return bytes;
+            }
+        }
+
+        return null;
+    }
+
     private void preRead() {
         // 1. check jar name
         // 2. find target
@@ -88,8 +128,6 @@ public class DepClassLoader extends ClassLoader {
         }
 
         extractJar(file);
-
-        loadJar();
     }
 
     private void extractJar(File file) {
@@ -110,33 +148,6 @@ public class DepClassLoader extends ClassLoader {
                 }
             }
 
-        }
-    }
-
-    private void loadJar() {
-        String jarPath = TMP_DIR + File.separator + jarName;
-        File jar = new File(jarPath);
-        JarFile jarFile = getJarFile(jar);
-
-        Enumeration<JarEntry> enumeration = jarFile.entries();
-        while (enumeration.hasMoreElements()) {
-            JarEntry entry = enumeration.nextElement();
-
-            if (entry.isDirectory()) {
-                continue;
-            }
-
-            if (entry.getName().endsWith(".class")) {
-                byte[] bytes;
-                try (InputStream inputStream = jarFile.getInputStream(entry)) {
-                    bytes = bytesCache.putIfAbsent(jarName, readBytes(inputStream));
-                } catch (IOException e) {
-                    throw new ExtractJarFileException("get jar input stream failed", e);
-                }
-
-                bytesCache.putIfAbsent(jarName, bytes);
-
-            }
         }
     }
 
@@ -182,6 +193,5 @@ public class DepClassLoader extends ClassLoader {
             throw new ReadJarFailedException("read jar file error", e);
         }
     }
-
 
 }
