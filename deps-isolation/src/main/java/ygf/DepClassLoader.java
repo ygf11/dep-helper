@@ -1,17 +1,9 @@
 package ygf;
 
-import ygf.exception.DepFileNotFoundException;
-import ygf.exception.JarFileParseException;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.HashMap;
+import ygf.exception.DepFileNotFoundException;
 
 /**
  * class loader for loading target jar file
@@ -35,6 +27,11 @@ public class DepClassLoader extends ClassLoader {
      * byte arrays cache
      */
     private Map<String, byte[]> bytesCache = new HashMap<>();
+
+    /**
+     * jars cache
+     */
+    private Map<String, File> jarCache = new HashMap<>();
 
     public DepClassLoader() {
         super();
@@ -70,75 +67,23 @@ public class DepClassLoader extends ClassLoader {
         return cz;
     }
 
-    private void preRead() {
-        File file = loadJarFile();
-        readJar(file);
-    }
-
-    private File loadJarFile() {
-        String path = "src/main/resources/dependencies/" + jarName;
-        File file = new File(path);
-
-        if (!file.exists()) {
-            throw new DepFileNotFoundException(
-                    "file:" + jarName + " not found in resources dir.");
+    private void preRead(){
+        // 1. check jar name
+        // 2. find target
+        // 3. load jar file
+        File file = new File("src/main/resources/deps.dep");
+        if (!file.exists()){
+            throw new DepFileNotFoundException("dependency files not present.");
         }
-
-
-        return file;
     }
 
-    private void readJar(File file) {
-        JarFile jarFile = transferToJar(file);
+    private void extractJar(){
 
-        try {
-            Enumeration<JarEntry> enumeration = jarFile.entries();
-            while (enumeration.hasMoreElements()) {
-                JarEntry jarEntry = enumeration.nextElement();
 
-                if (jarEntry.isDirectory()){
-                    continue;
-                }
-
-                if (!jarEntry.getName().endsWith(".class|.jar")){
-                    continue;
-                }
-
-                String name = jarEntry.getName().replace(".class", "")
-                        .replace("/", ".");
-                InputStream inputStream = jarFile.getInputStream(jarEntry);
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                int bufferSize = 1024;
-                byte[] buffer = new byte[bufferSize];
-                int readSize;
-
-                while ((readSize = inputStream.read(buffer)) != -1) {
-                    byteArrayOutputStream.write(buffer, 0, readSize);
-                }
-
-                inputStream.close();
-                bytesCache.put(name, byteArrayOutputStream.toByteArray());
-            }
-
-        } catch (IOException e) {
-            bytesCache.clear();
-
-            throw new JarFileParseException(e);
-        }
 
     }
 
+    private void loadJar(File file){
 
-    private JarFile transferToJar(File file) {
-        JarFile jarFile;
-        try {
-            jarFile = new JarFile(file);
-        } catch (IOException e) {
-            throw new JarFileParseException(e);
-        }
-
-        return jarFile;
     }
-
 }

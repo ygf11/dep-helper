@@ -156,6 +156,7 @@ public class DependenciesMojo extends AbstractMojo {
             jarOutputStream.write(buffer, 0, bytesRead);
         }
 
+        jarOutputStream.flush();
         fileInputStream.close();
     }
 }
