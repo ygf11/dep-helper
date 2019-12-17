@@ -1,9 +1,13 @@
 package ygf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.jar.JarFile;
+
 import ygf.exception.DepFileNotFoundException;
+import ygf.exception.JarFileParseException;
 
 /**
  * class loader for loading target jar file
@@ -45,13 +49,13 @@ public class DepClassLoader extends ClassLoader {
     }
 
     @Override
-    protected Class<?> findClass(String name){
+    protected Class<?> findClass(String name) {
         Class<?> cz = classCache.get(name);
 
-        if (cz == null){
-            synchronized (this){
+        if (cz == null) {
+            synchronized (this) {
                 cz = classCache.get(name);
-                if (cz == null){
+                if (cz == null) {
                     byte[] bytes = bytesCache.get(name);
                     if (bytes == null) {
                         throw new DepFileNotFoundException("name:" + name + ", class file not found.");
@@ -67,23 +71,36 @@ public class DepClassLoader extends ClassLoader {
         return cz;
     }
 
-    private void preRead(){
+    private void preRead() {
         // 1. check jar name
         // 2. find target
         // 3. load jar file
         File file = new File("src/main/resources/deps.dep");
-        if (!file.exists()){
+        if (!file.exists()) {
             throw new DepFileNotFoundException("dependency files not present.");
         }
-    }
-
-    private void extractJar(){
-
 
 
     }
 
-    private void loadJar(File file){
+    private void extractJar(File file) {
+        JarFile jarFile = getJarFile(file);
 
     }
+
+    private void loadJar(File file) {
+
+    }
+
+    private JarFile getJarFile(File file) {
+        JarFile jarFile;
+        try {
+            jarFile = new JarFile(file);
+        } catch (IOException e) {
+            throw new JarFileParseException("transfer jar file error", e);
+        }
+
+        return jarFile;
+    }
+
 }
