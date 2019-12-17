@@ -39,9 +39,8 @@
                 <version>1.0-SNAPSHOT</version>
                 <configuration>
                     <dependencies>
-                        <dependency>junit:junit:4.12</dependency>
-                        <dependency>org.apache.commons:commons-lang3:3.9</dependency>
-                        <dependency>org.apache.commons:commons-lang3:3.8.1</dependency>
+                        <dependency>com.dep.service:service1:1.0-SNAPSHOT</dependency>
+                        <dependency>com.dep.service:service2:1.0-SNAPSHOT</dependency>
                     </dependencies>
                 </configuration>
                 <executions>

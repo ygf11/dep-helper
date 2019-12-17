@@ -21,7 +21,7 @@ public class DepClassLoader extends ClassLoader {
     /**
      * dep-helper base dir
      */
-    private static String BASE_DIR = "src/main/dep-helper";
+    private static String BASE_DIR = "dep-helper";
 
     /**
      * dep-helper tmp dir
@@ -64,8 +64,7 @@ public class DepClassLoader extends ClassLoader {
                 if (cz == null) {
                     byte[] bytes = getByteArray(name);
                     if (bytes == null) {
-                        throw new DepFileNotFoundException(
-                                "name:" + name + ", class file not found.");
+                        throw new DepFileNotFoundException(name + ", class file not found.");
                     }
 
                     Class<?> result = defineClass(name, bytes, 0, bytes.length);
@@ -105,24 +104,24 @@ public class DepClassLoader extends ClassLoader {
 
             if (czName.equals(entryName)) {
                 try (InputStream inputStream = jarFile.getInputStream(entry)) {
-                    bytes = bytesCache.putIfAbsent(jarName, readBytes(inputStream));
+                    bytes = readBytes(inputStream);
+                    bytesCache.putIfAbsent(czName, bytes);
                 } catch (IOException e) {
                     throw new ExtractJarFileException("get jar input stream failed", e);
                 }
 
-                bytesCache.putIfAbsent(czName, bytes);
-                return bytes;
+                break;
             }
         }
 
-        return null;
+        return bytes;
     }
 
     private void preRead() {
         // 1. check jar name
         // 2. find target
         // 3. load jar file
-        File file = new File(BASE_DIR + File.separator + "deps.dep");
+        File file = new File(BASE_DIR + File.separator + "deps.jar");
         if (!file.exists()) {
             throw new DepFileNotFoundException("dependency files not present.");
         }
@@ -178,8 +177,11 @@ public class DepClassLoader extends ClassLoader {
         File tmpDir = new File(TMP_DIR);
 
         if (!tmpDir.exists()) {
-            throw new CreateDirFailedException(
-                    "create src/main/dep-helper/tmp fail");
+            boolean success = tmpDir.mkdir();
+            if (!success) {
+                throw new CreateDirFailedException(
+                        "create src/main/dep-helper/tmp fail");
+            }
         }
 
         return tmpDir;
