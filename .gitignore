@@ -41,3 +41,7 @@ mainframer
 # exclude docker-sync stuff
 .docker-sync
 */.docker-sync
+
+# dep-helper files
+/dep-helper
+/dep-helper/*

@@ -16,10 +16,7 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
-import ygf.mvn.plugin.Exception.DepFormatErrorException;
-import ygf.mvn.plugin.Exception.ResolveDepErrorException;
-import ygf.mvn.plugin.Exception.SameDependencyException;
-import ygf.mvn.plugin.Exception.WriteFileFailedException;
+import ygf.mvn.plugin.Exception.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +33,11 @@ import java.util.jar.Manifest;
 
 @Mojo(name = "build")
 public class DependenciesMojo extends AbstractMojo {
+
+    /**
+     * dependency dir
+     */
+    private static final String DEP_DIR = "dep-helper";
 
     @Parameter(property = "dependencies", required = true)
     private List<String> dependencies;
@@ -57,7 +59,7 @@ public class DependenciesMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (dependencies.isEmpty()){
+        if (dependencies.isEmpty()) {
             getLog().info("dependencies config is empty");
             return;
         }
@@ -67,7 +69,7 @@ public class DependenciesMojo extends AbstractMojo {
         checkConfig(dependencies);
 
         List<Artifact> artifacts = new ArrayList<>();
-        for (String dependency: dependencies){
+        for (String dependency : dependencies) {
             Artifact artifact = getDependencyFile(dependency);
             artifacts.add(artifact);
         }
@@ -83,7 +85,7 @@ public class DependenciesMojo extends AbstractMojo {
                 throw new DepFormatErrorException("err dependency format: " + dependency);
             }
 
-            if (depSet.contains(dependency)){
+            if (depSet.contains(dependency)) {
                 throw new SameDependencyException("same dependency in config:" + dependency);
             }
 
@@ -126,8 +128,9 @@ public class DependenciesMojo extends AbstractMojo {
         manifest.getMainAttributes()
                 .put(Attributes.Name.MANIFEST_VERSION, "1.0");
         try {
+            createDepDir();
             JarOutputStream jarOutputStream = new JarOutputStream(
-                    new FileOutputStream("src/main/resources/deps.jar"), manifest);
+                    new FileOutputStream("dep-helper/deps.jar"), manifest);
 
             for (Artifact artifact : artifactList) {
                 File file = artifact.getFile();
@@ -159,4 +162,18 @@ public class DependenciesMojo extends AbstractMojo {
         jarOutputStream.flush();
         fileInputStream.close();
     }
+
+    private void createDepDir() {
+        File dir = new File(DEP_DIR);
+
+        if (!dir.exists()) {
+            boolean success = dir.mkdir();
+            if (!success) {
+                throw new CreateDepDirException(
+                        "create dep-helper dir fail");
+            }
+        }
+
+    }
+
 }
