@@ -1,20 +1,18 @@
 package ygf;
 
-import com.dep.service.impl.api.HelloService;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DepContext {
-    HelloService helloService = new HelloService() {
-        @Override
-        public void sayHello() {
-            System.out.println("test");
-        }
-    };
+    /**
+     * class loader map
+     */
+    private static final Map<String, DepClassLoader> classLoadMap;
 
-    public DepContext(){
-        helloService.sayHello();
+    static {
+        classLoadMap = new ConcurrentHashMap<>();
     }
 
-    public static void main(String[] args){
-        DepContext context = new DepContext();
-    }
+
+
 }
