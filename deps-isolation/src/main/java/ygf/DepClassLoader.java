@@ -1,9 +1,6 @@
 package ygf;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.HashMap;
@@ -11,10 +8,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.apache.commons.io.IOUtils;
-import ygf.exception.CreateDirFailedException;
-import ygf.exception.DepFileNotFoundException;
-import ygf.exception.ExtractJarFileException;
-import ygf.exception.JarFileParseException;
+import ygf.exception.*;
 
 /**
  * class loader for loading target jar file
@@ -49,11 +43,6 @@ public class DepClassLoader extends ClassLoader {
      */
     private Map<String, byte[]> bytesCache = new HashMap<>();
 
-    /**
-     * jars cache
-     */
-    private Map<String, File> jarCache = new HashMap<>();
-
     public DepClassLoader() {
         super();
     }
@@ -75,7 +64,8 @@ public class DepClassLoader extends ClassLoader {
                 if (cz == null) {
                     byte[] bytes = bytesCache.get(name);
                     if (bytes == null) {
-                        throw new DepFileNotFoundException("name:" + name + ", class file not found.");
+                        throw new DepFileNotFoundException(
+                                "name:" + name + ", class file not found.");
                     }
 
                     Class<?> result = defineClass(name, bytes, 0, bytes.length);
@@ -97,7 +87,9 @@ public class DepClassLoader extends ClassLoader {
             throw new DepFileNotFoundException("dependency files not present.");
         }
 
+        extractJar(file);
 
+        loadJar();
     }
 
     private void extractJar(File file) {
@@ -111,14 +103,41 @@ public class DepClassLoader extends ClassLoader {
 
             String entryName = entry.getName();
             if (jarName.equals(entryName)) {
-
+                try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                    writeToFile(inputStream);
+                } catch (IOException e) {
+                    throw new ExtractJarFileException("get jar input stream failed", e);
+                }
             }
 
         }
     }
 
-    private void loadJar(File file) {
+    private void loadJar() {
+        String jarPath = TMP_DIR + File.separator + jarName;
+        File jar = new File(jarPath);
+        JarFile jarFile = getJarFile(jar);
 
+        Enumeration<JarEntry> enumeration = jarFile.entries();
+        while (enumeration.hasMoreElements()) {
+            JarEntry entry = enumeration.nextElement();
+
+            if (entry.isDirectory()) {
+                continue;
+            }
+
+            if (entry.getName().endsWith(".class")) {
+                byte[] bytes;
+                try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                    bytes = bytesCache.putIfAbsent(jarName, readBytes(inputStream));
+                } catch (IOException e) {
+                    throw new ExtractJarFileException("get jar input stream failed", e);
+                }
+
+                bytesCache.putIfAbsent(jarName, bytes);
+
+            }
+        }
     }
 
     private JarFile getJarFile(File file) {
@@ -135,6 +154,7 @@ public class DepClassLoader extends ClassLoader {
     private void writeToFile(InputStream inputStream) {
         File tmpDir = createTmpDir();
         File jarFile = new File(tmpDir, jarName);
+
         try (FileOutputStream outputStream = new FileOutputStream(jarFile)) {
             IOUtils.copy(inputStream, outputStream);
         } catch (IOException e) {
@@ -152,7 +172,16 @@ public class DepClassLoader extends ClassLoader {
         }
 
         return tmpDir;
-
     }
+
+    private byte[] readBytes(InputStream inputStream) {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            IOUtils.copy(inputStream, byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            throw new ReadJarFailedException("read jar file error", e);
+        }
+    }
+
 
 }
