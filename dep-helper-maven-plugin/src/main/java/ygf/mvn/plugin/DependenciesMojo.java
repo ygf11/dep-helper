@@ -1,9 +1,8 @@
 package ygf.mvn.plugin;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -30,6 +29,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
 
 @Mojo(name = "build")
 public class DependenciesMojo extends AbstractMojo {
@@ -58,9 +58,9 @@ public class DependenciesMojo extends AbstractMojo {
     private RepositorySystemSession repositorySystemSession;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() {
         if (dependencies.isEmpty()) {
-            getLog().info("dependencies config is empty");
+            getLog().warn("dependencies config is empty");
             return;
         }
 
@@ -68,11 +68,15 @@ public class DependenciesMojo extends AbstractMojo {
 
         checkConfig(dependencies);
 
+        getLog().info("Resolving dependencies in plugin config");
+
         List<Artifact> artifacts = new ArrayList<>();
         for (String dependency : dependencies) {
             Artifact artifact = getDependencyFile(dependency);
             artifacts.add(artifact);
         }
+
+        getLog().info("Packaging dependencies files");
 
         zipConfigDeps(artifacts);
     }
@@ -127,40 +131,32 @@ public class DependenciesMojo extends AbstractMojo {
         Manifest manifest = new Manifest();
         manifest.getMainAttributes()
                 .put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        try {
-            createDepDir();
-            JarOutputStream jarOutputStream = new JarOutputStream(
-                    new FileOutputStream("dep-helper/deps.jar"), manifest);
+
+        createDepDir();
+
+        try (FileOutputStream fileOutputStream =
+                     new FileOutputStream(DEP_DIR + File.separator + "deps.jar");
+             JarOutputStream jarOutputStream =
+                     new JarOutputStream(fileOutputStream, manifest)) {
 
             for (Artifact artifact : artifactList) {
                 File file = artifact.getFile();
-                FileInputStream inputStream = new FileInputStream(file);
-                writeToJar(inputStream, jarOutputStream, file.getName());
-                inputStream.close();
+                writeToJar(file, file.getName(), jarOutputStream);
             }
 
-            jarOutputStream.finish();
-            jarOutputStream.close();
         } catch (IOException e) {
             getLog().error("write file to deps.jar failed", e);
             throw new WriteFileFailedException("write file to deps.jar failed:", e);
         }
     }
 
-    private void writeToJar(FileInputStream fileInputStream,
-                            JarOutputStream jarOutputStream, String fileName) throws IOException {
-        int bytesRead;
-        byte[] buffer = new byte[1024];
-
-        JarEntry entry = new JarEntry(fileName);
-        jarOutputStream.putNextEntry(entry);
-
-        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-            jarOutputStream.write(buffer, 0, bytesRead);
+    private void writeToJar(File file, String fileName,
+                            JarOutputStream jarOutputStream) throws IOException {
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            JarEntry entry = new JarEntry(fileName);
+            jarOutputStream.putNextEntry(entry);
+            IOUtils.copy(inputStream, jarOutputStream);
         }
-
-        jarOutputStream.flush();
-        fileInputStream.close();
     }
 
     private void createDepDir() {
@@ -173,7 +169,5 @@ public class DependenciesMojo extends AbstractMojo {
                         "create dep-helper dir fail");
             }
         }
-
     }
-
 }
