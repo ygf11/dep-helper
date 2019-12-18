@@ -43,5 +43,8 @@ mainframer
 */.docker-sync
 
 # dep-helper files
-/dep-helper
-/dep-helper/*
+dep-helper
+dep-helper/*
+deps-isolation/dep-helper
+deps-isolation/dep-helper/*
+

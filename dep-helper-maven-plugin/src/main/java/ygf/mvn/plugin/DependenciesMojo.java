@@ -59,6 +59,8 @@ public class DependenciesMojo extends AbstractMojo {
 
     @Override
     public void execute() {
+        getLog().info("base dir:" + mavenSession.getCurrentProject().getBasedir().getName());
+
         if (dependencies.isEmpty()) {
             getLog().warn("dependencies config is empty");
             return;
@@ -135,7 +137,7 @@ public class DependenciesMojo extends AbstractMojo {
         createDepDir();
 
         try (FileOutputStream fileOutputStream =
-                     new FileOutputStream(DEP_DIR + File.separator + "deps.jar");
+                     new FileOutputStream(getDepDir() + File.separator + "deps.jar");
              JarOutputStream jarOutputStream =
                      new JarOutputStream(fileOutputStream, manifest)) {
 
@@ -160,14 +162,20 @@ public class DependenciesMojo extends AbstractMojo {
     }
 
     private void createDepDir() {
-        File dir = new File(DEP_DIR);
+        File dir = new File(getDepDir());
 
         if (!dir.exists()) {
             boolean success = dir.mkdir();
             if (!success) {
+                getLog().info("dir:" + dir.getName());
                 throw new CreateDepDirException(
-                        "create dep-helper dir fail");
+                        "create dep-helper dir fail:" + dir.getName());
             }
         }
+    }
+
+    private String getDepDir() {
+        String projectDir = mavenProject.getBasedir().getAbsolutePath();
+        return projectDir + File.separator + DEP_DIR;
     }
 }
