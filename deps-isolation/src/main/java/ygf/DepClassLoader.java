@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -43,19 +44,19 @@ public class DepClassLoader extends ClassLoader {
      */
     private Map<String, byte[]> bytesCache = new HashMap<>();
 
-    public DepClassLoader() {
-        super();
-    }
-
     public DepClassLoader(String jarName) {
         super();
-        this.jarName = jarName;
 
+        Objects.requireNonNull(jarName, "jarName can not be null!");
+
+        this.jarName = jarName;
         preRead();
     }
 
     @Override
     protected Class<?> findClass(String name) {
+        Objects.requireNonNull(name, "czName can not be null!");
+
         Class<?> cz = classCache.get(name);
 
         if (cz == null) {
@@ -78,9 +79,6 @@ public class DepClassLoader extends ClassLoader {
     }
 
     private byte[] getByteArray(String czName) {
-        if (czName == null) {
-            throw new LoadClassException("czName is null");
-        }
 
         byte[] bytes = bytesCache.get(czName);
         if (bytes != null) {
@@ -107,7 +105,7 @@ public class DepClassLoader extends ClassLoader {
                     bytes = readBytes(inputStream);
                     bytesCache.putIfAbsent(czName, bytes);
                 } catch (IOException e) {
-                    throw new ExtractJarFileException("get jar input stream failed", e);
+                    throw new DepIoException("get jar input stream failed", e);
                 }
 
                 break;
@@ -123,7 +121,7 @@ public class DepClassLoader extends ClassLoader {
         // 3. load jar file
         File file = new File(BASE_DIR + File.separator + "deps.jar");
         if (!file.exists()) {
-            throw new DepFileNotFoundException("dependency files not present.");
+            throw new JarFileParseException("deps.jar not present.");
         }
 
         extractJar(file);
@@ -143,11 +141,15 @@ public class DepClassLoader extends ClassLoader {
                 try (InputStream inputStream = jarFile.getInputStream(entry)) {
                     writeToFile(inputStream);
                 } catch (IOException e) {
-                    throw new ExtractJarFileException("get jar input stream failed", e);
+                    throw new DepIoException("get jar input stream failed", e);
                 }
-            }
 
+                // end
+                return;
+            }
         }
+
+        throw new JarNotFoundException(jarName + " not present in target dir.");
     }
 
     private JarFile getJarFile(File file) {
@@ -168,7 +170,7 @@ public class DepClassLoader extends ClassLoader {
         try (FileOutputStream outputStream = new FileOutputStream(jarFile)) {
             IOUtils.copy(inputStream, outputStream);
         } catch (IOException e) {
-            throw new ExtractJarFileException("extract jar file fail", e);
+            throw new DepIoException("extract jar file fail", e);
         }
 
     }
@@ -179,7 +181,7 @@ public class DepClassLoader extends ClassLoader {
         if (!tmpDir.exists()) {
             boolean success = tmpDir.mkdir();
             if (!success) {
-                throw new CreateDirFailedException(
+                throw new DepIoException(
                         "create src/main/dep-helper/tmp fail");
             }
         }
@@ -192,7 +194,7 @@ public class DepClassLoader extends ClassLoader {
             IOUtils.copy(inputStream, byteArrayOutputStream);
             return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
-            throw new ReadJarFailedException("read jar file error", e);
+            throw new DepIoException("read jar file error", e);
         }
     }
 
