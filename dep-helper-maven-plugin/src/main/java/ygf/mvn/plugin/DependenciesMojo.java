@@ -30,7 +30,12 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-
+/**
+ * dep-help maven plugin, build goal entrance
+ *
+ * @author yanggaofeng
+ * @date 20191219
+ */
 @Mojo(name = "build")
 public class DependenciesMojo extends AbstractMojo {
 
