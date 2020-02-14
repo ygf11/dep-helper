@@ -52,14 +52,17 @@ Dep-helper is a lib which can be used to resolve dependency conflicts.
     </plugin>
 ```
 
-the goal of this plugin is `build`, and you can add dependencies to dependency tag which you want to isolate.
+you can configurate:
+1. add jar which will conflict each other to configuration tag. As an example: ygf.deps.service:service1:1.0-SNAPSHOT .
+2. add `build` goal, maven will find and save these jar in src/dep-helps dir. 
+
 
 ## get target class
 ```
-    Class<?>  service1 = DepContext.getClass(
+    Class<?>  service = DepContext.getClass(
                 "com.dep.service.impl.HelloServiceImpl", "service1-1.0-SNAPSHOT.jar");
-    HelloService first = (HelloService) service1.getConstructor().newInstance();
-    first.sayHello();
+    HelloService  helloService = (HelloService) service1.getConstructor().newInstance();
+    helloService.sayHello();
 ```
 
 `DepContext.getClass()` has two parameters:

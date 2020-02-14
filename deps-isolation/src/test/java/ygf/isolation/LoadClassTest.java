@@ -1,6 +1,6 @@
 package ygf.isolation;
 
-import com.dep.service.impl.api.HelloService;
+import ygf.deps.service.api.HelloService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +13,7 @@ public class LoadClassTest {
     @Test
     public void loadClassSuccessTest1() throws Exception{
         DepClassLoader classLoader = new DepClassLoader("service1-1.0-SNAPSHOT.jar");
-        Class<?> cz = classLoader.loadClass("com.dep.service.impl.HelloServiceImpl");
+        Class<?> cz = classLoader.loadClass("ygf.deps.service.impl.HelloServiceImpl");
 
         Assert.assertNotNull(cz);
 
@@ -24,7 +24,7 @@ public class LoadClassTest {
     @Test
     public void loadClassSuccessTest2() throws Exception{
         DepClassLoader classLoader = new DepClassLoader("service2-1.0-SNAPSHOT.jar");
-        Class<?> cz = classLoader.loadClass("com.dep.service.impl.HelloServiceImpl");
+        Class<?> cz = classLoader.loadClass("ygf.deps.service.impl.HelloServiceImpl");
 
         Assert.assertNotNull(cz);
 
@@ -33,7 +33,7 @@ public class LoadClassTest {
 
 
         DepClassLoader classLoader1 = new DepClassLoader("service1-1.0-SNAPSHOT.jar");
-        Class<?> cz1 = classLoader1.loadClass("com.dep.service.impl.HelloServiceImpl");
+        Class<?> cz1 = classLoader1.loadClass("ygf.deps.service.impl.HelloServiceImpl");
 
         Assert.assertNotNull(cz1);
 
