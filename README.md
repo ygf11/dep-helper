@@ -67,7 +67,7 @@ you can configurate:
 ```
 
 `DepContext.getClass()` has two parameters:
-1. the full name of target `class`
+1. the fully qualified name of the target `class`
 2. the name of `jar` which belongs 
 
 
