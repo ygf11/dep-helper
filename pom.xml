@@ -11,8 +11,24 @@
     <modules>
         <module>dep-helper-maven-plugin</module>
         <module>deps-isolation</module>
-        <module>example</module>
     </modules>
+
+
+    <repositories>
+        <repository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/repositories/central/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/repositories/central/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <build>
         <plugins>
