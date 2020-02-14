@@ -1,7 +1,7 @@
 package ygf.deps.example;
 
 import com.dep.service.impl.api.HelloService;
-import ygf.DepContext;
+import ygf.deps.isolation.DepContext;
 
 /**
  * example
