@@ -55,7 +55,7 @@ Dep-helper is a lib which can be used to resolve dependency conflicts.
 you can configurate:
 1. add `jar` which will `conflict` each other to configuration tag.   
    `Example`: `ygf.deps.service:service1:1.0-SNAPSHOT` .
-2. add `build` goal, maven will find and save these jar in `src/dep-helps` dir. 
+2. add `build` goal, maven will find and save these jar in `src/dep-helper` dir. 
 
 
 ## get target class
@@ -67,7 +67,7 @@ you can configurate:
 ```
 
 `DepContext.getClass()` has two parameters:
-1. the fully qualified name of the target `class`
-2. the name of `jar` which belongs 
+1. the fully qualified name of the target `class`.
+2. the name of `jar` which belongs. 
 
 
